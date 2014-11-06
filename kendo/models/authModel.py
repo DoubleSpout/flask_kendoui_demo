@@ -17,7 +17,7 @@ class auth(db.Model, DumpToDict):
     authName = db.Column(db.String(50))
     groupName = db.Column(db.String(50))
     authUrl = db.Column(db.String(50))
-    isMenu = db.Column(db.Boolean) #是否为菜单，如果是，则这个url将会在菜单显示出来
+    isMenu = db.Column(db.Boolean, default=False) #是否为菜单，如果是，则这个url将会在菜单显示出来
 
     code1 = db.Column(db.String(50))
     code2 = db.Column(db.String(50))
@@ -25,7 +25,8 @@ class auth(db.Model, DumpToDict):
     updateTime = db.Column(db.DateTime, onupdate=datetime.now, default=datetime.now)
     writeTime = db.Column(db.DateTime, default=datetime.now)
 
-    def __init__(self, authName=None, groupName=None, authUrl=None, isMenu=False):
-        self.authName = authName
-        self.groupName = groupName
-        self.authUrl = authUrl
+    def __init__(self, modelDict={}):
+        self.authName = modelDict.get('authName', None)
+        self.groupName = modelDict.get('groupName', None)
+        self.authUrl = modelDict.get('authUrl', None)
+        self.isMenu = modelDict.get('isMenu', False)

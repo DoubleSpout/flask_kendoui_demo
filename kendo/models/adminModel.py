@@ -18,7 +18,7 @@ class admin(db.Model, DumpToDict):
     admin = db.Column(db.String(50), unique=True, )
     password = db.Column(db.String(50))
     tips = db.Column(db.String(50))
-    isShow = db.Column(db.Boolean)
+    isShow = db.Column(db.Boolean, default=True)
     updateTime = db.Column(db.DateTime, onupdate=datetime.now, default=datetime.now)
     writeTime = db.Column(db.DateTime, default=datetime.now)
     code1 = db.Column(db.String(50))
@@ -29,11 +29,11 @@ class admin(db.Model, DumpToDict):
     roles = db.relationship('role', secondary='admin_role',
         backref=db.backref('admin', lazy='select'), lazy='select')
 
-    def __init__(self, admin=None, password=None, tips=None, isShow=True):
-        self.admin = admin
-        self.password = password
-        self.tips = tips
-        self.isShow = isShow
+    def __init__(self, modelDict={}):
+        self.admin = modelDict.get('admin', None)
+        self.password = modelDict.get('password', None)
+        self.tips = modelDict.get('tips', None)
+        self.isShow = modelDict.get('isShow', True)
 
 
 #关联表
@@ -46,7 +46,7 @@ class adminRole(db.Model):
 
     db.UniqueConstraint('adminId', 'roleId', name='unique_1')
 
-    def __init__(self, adminId, roleId):
-        self.adminId = adminId
-        self.roleId = roleId
+    def __init__(self, modelDict={}):
+        self.adminId = modelDict.get('adminId', None)
+        self.roleId = modelDict.get('roleId', None)
 

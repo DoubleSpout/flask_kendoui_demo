@@ -11,10 +11,10 @@ import urllib
 from xml.dom.minidom import parse, parseString
 from datetime import datetime
 from kendo.bussiness.UtilsBl import Utils
+from kendo.bussiness.loginBl import adminBl
 
-@Utils.authLogin
-def list(adminObj):
-    errorTips = request.args.get('error', '')
-    return render_template('login.html', adminObj=adminObj)
+@adminBl.authLogin
+def list():
+    return render_template('index.html')
 
 

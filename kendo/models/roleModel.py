@@ -26,9 +26,9 @@ class role(db.Model, DumpToDict):
     auths = db.relationship('auth', secondary='role_auth',
         backref=db.backref('role', lazy='select'), lazy='select')
 
-    def __init__(self, roleName=None, roleTips=None):
-        self.roleName = roleName
-        self.roleTips = roleTips
+    def __init__(self, modelDict={}):
+        self.roleName = modelDict.get('roleName', None)
+        self.roleTips = modelDict.get('roleTips', None)
 
 
 #关联表
@@ -41,6 +41,6 @@ class roleAuth(db.Model):
 
     db.UniqueConstraint('roleId', 'authId', name='unique_1')
 
-    def __init__(self, roleId, authId):
-        self.roleId = roleId
-        self.authId = authId
+    def __init__(self, modelDict={}):
+        self.roleId = modelDict.get('roleId', None)
+        self.authId = modelDict.get('authId', None)

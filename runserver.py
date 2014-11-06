@@ -12,7 +12,6 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-
 #获取配置参数并return {'error':1,'data':'不能补签过期日期'}
 __opts, _ = getopt.getopt(sys.argv[1:], "e:") #获取命令行参数
 __scritpEnv = ""
@@ -71,9 +70,10 @@ db.create_all()
 
 if __name__ == '__main__':
     from kendo.bussiness.loginBl import adminBl
-    app.run(host=app.config.get("HOST"),port=app.config.get("PORT"))
     #初始化管理员及权限
     adminBl.initAdmin()
+    app.run(host=app.config.get("HOST"),port=app.config.get("PORT"))
+
     
     
     
