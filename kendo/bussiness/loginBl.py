@@ -10,7 +10,7 @@ import json
 import calendar
 from datetime import datetime
 from flask import render_template, request, redirect, url_for, sessions, Response, session, g
-from sqlalchemy import *
+from sqlalchemy import Text, desc
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import load_only, joinedload, dynamic_loader, lazyload, defer, undefer
 from sqlalchemy.ext.serializer import loads, dumps
@@ -57,10 +57,10 @@ class adminBl(kendouiData):
 
         userObj = admin.query.filter_by(Id=self.adminId, isShow=True).first()
         if not userObj:
-            return false, u'未找到此管理员'
+            return False, u'未找到此管理员'
 
         adminIns.sqlData = userObj
-        return true, adminIns.dumpToList()
+        return True, adminIns.dumpToList()
 
     #获取管理员的权限方法
     def getAdminAuth(self):
@@ -109,7 +109,10 @@ class adminBl(kendouiData):
             'admin':'admin',
             'password':defaultPassword
         })
-        roleIns = role('管理员组', '管理员组角色')
+        roleIns = role({
+            'roleName':'管理员组',
+            'roleTips':'管理员组角色',
+        })
         #为角色增加权限
         authName = '管理员管理'
         #添加管理员权限
@@ -231,13 +234,14 @@ class adminBl(kendouiData):
             hasAuth = False
 
             #如果访问首页，则直接授权
-            if reqPath.index(url_for('homeIndex')) >= 0:
+            homeUrl = url_for('homeIndex')
+            if reqPath.find(homeUrl.decode()) >= 0:
                 hasAuth = True
             #否则访问其他路径，判断权限
             else:
                 for groupName in adminAuth:
                     for authName in adminAuth[groupName]:
-                        if reqPath.IndexOf(adminAuth[groupName][authName]['authUrl']) >= 0:
+                        if reqPath.find(adminAuth[groupName][authName]['authUrl']) >= 0:
                             hasAuth = True
 
             #如果没有访问权限，则报错
@@ -254,35 +258,18 @@ class adminBl(kendouiData):
 
     #获取列表页
     def getList(self):
-        self.modelClass = admin
-        #实例化admin类
-        adminIns = admin()
-        #查询数据
-        adminList = admin.query.filter(SQLAlchemy.text(self.ormFilterStr))\
-            .params(*self.ormFilterValue)\
-            .limit(self.ormLimit)\
-            .skip(self.ormSkip)\
-            .order_by(SQLAlchemy.desc('admin.Id'))\
-            .all()
-        #将查询的数据转为dict
-        adminIns.sqlData = adminList
-        #查询总数
-        total = admin.query.count()
-        return True, {
-            'Total':total,
-            'Data':adminIns.dumpToList()
-        }
+        return self.getData()
 
 
 
     #添加或者更新一个管理员信息
     def saveOne(self):
-        self.modelClass = admin
-        return self.getSaveData()
+
+        return self.saveData()
 
     #删除一个管理员
     def delOne(self):
-        self.modelClass = admin
+
         return self.delData()
 
 

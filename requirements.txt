@@ -6,3 +6,4 @@ Flask-DebugToolbar==0.8.0
 Flask-MySQL==1.2
 Flask-SQLAlchemy==2.0
 flask-restful==0.2.12
+FormEncode==1.2.6

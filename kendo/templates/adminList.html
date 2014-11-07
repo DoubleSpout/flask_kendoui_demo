@@ -4,7 +4,152 @@
 
 
 
-    <h1 class="page-header">欢迎登录后台管理系统</h1>
+
+
+<div id="grid"></div>
+
+
+<script>
+ $(function () {
+
+                var DataHost = window.DataHost,
+                    dataSource = new kendo.data.DataSource({
+                        type: "json",
+                        serverPaging: true,
+                        serverSorting: true,
+                        batch: true,
+                        pageSize: 20,
+                        serverFiltering:true,
+                        transport: {
+                            read:  {
+                                url: DataHost + "/admin/read",
+                                type: "post"
+                            },
+                            update: {
+                                url: DataHost + "/admin/save",
+                                type: "post",
+                                complete: function(e) {
+                                            $("#grid").data("kendoGrid").dataSource.read();
+                                    }
+                            },
+                             destroy: {
+                                url: DataHost + "/admin/delete",
+                                type: "post"
+                            },
+                            create: {
+                                url:DataHost + "/admin/save",
+                                type: "post",
+                                complete: function(e) {
+                                            $("#grid").data("kendoGrid").dataSource.read();
+                                    }
+                            }
+                        },
+                        schema: {
+                            total: "Total",
+                            data: "Data",
+                            model: {
+                                id:"Id",
+                                fields: {
+                                    "Id": { editable: false, type:'number' },
+                                    "admin": { editable: true, type:'string'},
+                                    "password": { editable: true, type:'string'},
+                                    "tips":{editable: true, type:'string'},
+                                    "isShow":{editable: true, type:'Boolean'},
+                                    "updateTime": {editable: true, type: "date" },
+                                    "writeTime": {editable: true, type: "date" },
+                                    /*"code1":{editable: true, type:'string'},
+                                    "code2":{editable: true, type:'string'},
+                                    "code3":{editable: true, type:'string'},
+                                    "code4":{editable: true, type:'string'}*/
+                                }
+                            }
+                        }
+                    });
+
+
+                $("#grid").kendoGrid({
+                    dataSource: dataSource,
+                    pageable: true,
+                    toolbar: window.toolbarAry,
+                    columns: [
+                        {
+                            field:'Id',
+                            title:'管理员id',
+                            hidden:false
+                        },
+                        {
+                            field: "admin",
+                            title: "管理员"
+                        },
+                        {
+                            field: "password",
+                            title: "密码",
+                            hidden:true
+                        },
+                        {
+                            field: "tips",
+                            title: "备注"
+                        },
+                        {
+                            field: "isShow",
+                            title: "是否启用",
+                            values:window.is_show_array
+                        },
+                        {
+                            field: "updateTime",
+                            title: "更新日期",
+                            format: "{0: yyyy-MM-dd HH:mm:ss}"
+                        },
+                        {
+                            field: "writeTime",
+                            title: "写入日期",
+                            format: "{0: yyyy-MM-dd HH:mm:ss}"
+                        },
+                        /*{
+                            field:'code1',
+                            title:'备用',
+                            hidden:true
+                        },
+                        {
+                            field:'code2',
+                            title:'备用',
+                            hidden:true
+                        },
+                        {
+                            field:'code3',
+                            title:'备用',
+                            hidden:true
+                        },
+                            {
+                            field:'code4',
+                            title:'备用',
+                            hidden:true
+                        },*/
+                        { command: window.commandAry, title: "&nbsp;", width: "160px" }],
+                    editable: {
+                        confirmation:'确定删除吗？',
+                        mode:"popup",
+                        window : {
+                                title: "添加/修改"
+                            }
+                        },
+                    edit:function(e){
+
+                            window.dropdown_init($('input[name="isShow"]'), window.is_show_array)
+
+                    }
+                    //filterable:true
+                });
+      });
+
+
+</script>
+
+
+
+
+
+
 
 
 {% include 'inc/foot.html' %}

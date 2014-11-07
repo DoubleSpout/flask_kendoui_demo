@@ -1,4 +1,4 @@
 .pyc
-kendo/logs
+./logs
 .idea
 *.pyc

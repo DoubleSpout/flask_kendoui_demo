@@ -26,6 +26,7 @@ class auth(db.Model, DumpToDict):
     writeTime = db.Column(db.DateTime, default=datetime.now)
 
     def __init__(self, modelDict={}):
+        self.Id = modelDict.get('Id', None)
         self.authName = modelDict.get('authName', None)
         self.groupName = modelDict.get('groupName', None)
         self.authUrl = modelDict.get('authUrl', None)

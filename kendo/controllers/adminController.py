@@ -11,8 +11,12 @@ import urllib
 import json
 from xml.dom.minidom import parse, parseString
 from datetime import datetime
+from formencode.variabledecode import variable_decode
+from urlparse import parse_qsl, parse_qs
+import urllib
 
-
+from kendo.utils.pyquerystring.querystring import parse
+from kendo.models.adminModel import admin
 from kendo.bussiness.UtilsBl import Utils
 from kendo.bussiness.loginBl import adminBl
 
@@ -24,37 +28,46 @@ def list():
 @adminBl.authLogin
 def read():
     adminIns = adminBl()
+    adminIns.modelClass = admin
     #设置参数
     adminIns.kendoParam = request.form
-    #将kendoui的参数解析为orm的参数
-    adminIns.parseKendoData()
+
     #获取列表
     ok, result = adminIns.getList()
     #如果出错
     if not ok:
         return render_template('errorPage.html', errotTitle=u'500 {0}'.format(result)), 500
     #返回json数据
-    return json.dumps(result)
+    return Response(json.dumps(result), mimetype='application/json; charset=utf-8')
 
 @adminBl.authLogin
 def save():
     adminIns = adminBl()
-    adminIns.saveModel = request.form
+    adminIns.modelClass = admin
+    #获取原生的post字符串
+    rawStr = urllib.unquote(request.stream.read())
+    #转换post字符串为dict，并赋值
+    adminIns.saveModel = parse(rawStr)
     ok, result = adminIns.saveOne()
     #如果出错
     if not ok:
         return render_template('errorPage.html', errotTitle=u'500 {0}'.format(result)), 500
     #返回json数据
-    return json.dumps([result])
+    return Response(json.dumps([result]), mimetype='application/json; charset=utf-8')
 
 
 @adminBl.authLogin
 def delete():
     adminIns = adminBl()
-    adminIns.delModel = request.form
+    adminIns.modelClass = admin
+    #获取原生的post字符串
+    rawStr = urllib.unquote(request.stream.read())
+    #转换post字符串为dict，并赋值
+    adminIns.delModel = parse(rawStr)
+    #转换post字符串为dict，并赋值
     ok, result = adminIns.delOne()
     #如果出错
     if not ok:
         return render_template('errorPage.html', errotTitle=u'500 {0}'.format(result)), 500
     #返回json数据
-    return json.dumps(result)
+    return Response(json.dumps(result), mimetype='application/json; charset=utf-8')

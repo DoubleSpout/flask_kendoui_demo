@@ -30,6 +30,7 @@ class admin(db.Model, DumpToDict):
         backref=db.backref('admin', lazy='select'), lazy='select')
 
     def __init__(self, modelDict={}):
+        self.Id = modelDict.get('Id', None)
         self.admin = modelDict.get('admin', None)
         self.password = modelDict.get('password', None)
         self.tips = modelDict.get('tips', None)
@@ -47,6 +48,7 @@ class adminRole(db.Model):
     db.UniqueConstraint('adminId', 'roleId', name='unique_1')
 
     def __init__(self, modelDict={}):
+        self.Id = modelDict.get('Id', None)
         self.adminId = modelDict.get('adminId', None)
         self.roleId = modelDict.get('roleId', None)
 

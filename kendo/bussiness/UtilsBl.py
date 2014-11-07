@@ -5,7 +5,8 @@ import flask
 from flask import render_template, request, redirect, url_for, sessions, Response, session
 import urllib
 import types
-import datetime
+from sqlalchemy import Text, desc
+from datetime import datetime
 
 from kendo.models.dbModel import *
 
@@ -51,7 +52,10 @@ class DumpToDict(object):
         pass
     def dumpToList(self, result=None):
         if not result:
-            result = self.sqlData
+            result = getattr(self, 'sqlData', None)
+        #如果没有sqlData
+        if not getattr(self, 'sqlData', None):
+            result = self
 
         #获取model的所遇key
         keyList = self.__mapper__.c.keys()
@@ -66,14 +70,20 @@ class DumpToDict(object):
                 tempList[i] = {}
                 for key in keyList:
                     tempList[i][key] = getattr(sqlObj, key)
-                    if type(tempList[key]) == datetime.date:
+                    #如果是None,则为空
+                    if tempList[i][key] is None:
+                        tempList[i][key] = ''
+                    elif isinstance(tempList[i][key], datetime):
                         tempList[i][key] = tempList[i][key].strftime("%Y-%m-%d %H:%M:%S")
                 i += 1
         else:
             tempList = {}
             for key in keyList:
                     tempList[key] = getattr(result, key)
-                    if type(tempList[key]) == datetime.date:
+                    #如果是None,则为空
+                    if tempList[key] is None:
+                        tempList[key] = ''
+                    elif isinstance(tempList[key], datetime):
                         tempList[key] = tempList[key].strftime("%Y-%m-%d %H:%M:%S")
 
         return tempList
@@ -82,7 +92,7 @@ class DumpToDict(object):
 #解析kendoui参数的类
 class kendouiData(object):
 
-    def parseKendoData(self, paramObj):
+    def parseKendoData(self, paramObj=None):
         if not paramObj:
             paramObj = self.kendoParam
 
@@ -162,12 +172,42 @@ class kendouiData(object):
         elif filter.get('logic', '') == 'or' and len(self.ormFilterList) > 0:
             self.ormFilterStr = 'or'.join(self.ormFilterList)
 
-        return
+        return True
+
+    def getData(self):
+        #将kendoui的参数解析为orm的参数
+        self.parseKendoData()
+        #实例化admin类
+        objIns = self.modelClass()
+        #查询数据
+        adminQuery = self.modelClass.query
+        #如果有filter条件
+        if self.ormFilterStr != '':
+            adminQuery = adminQuery.filter(Text(self.ormFilterStr))\
+                                   .params(*self.ormFilterValue)
+
+        adminList = adminQuery\
+            .order_by(desc(self.modelClass.Id))\
+            .offset(self.ormSkip)\
+            .limit(self.ormLimit)\
+            .all()
+
+        #将查询的数据转为dict
+        objIns.sqlData = adminList
+        #查询总数
+        total = self.modelClass.query.count()
+        return True, {
+            'Total': total,
+            'AggregateResults':None,
+            'Errors':None,
+            'Data': objIns.dumpToList()
+        }
+
 
     #获取并保存数据
     def saveData(self):
-        if type(self.saveModel) == list:
-            self.saveModel = self.saveModel.get('0', None)
+        if isinstance(self.saveModel, dict):
+            self.saveModel = self.saveModel['models'].get('0', None)
 
         if not self.saveModel:
             return False, u'更新对象参数有误'
@@ -178,27 +218,49 @@ class kendouiData(object):
         insObj = {}
         for key in keyList:
             if self.saveModel.get(key, None):
-                insObj[key] = self.saveModel.get(key, None)
-        #实例化model类
-        modelIns = self.modelClass(insObj)
+                value = self.saveModel.get(key, None)
+                if value is None:
+                    continue
+                elif value == 'true':
+                    value = True
+                elif value == 'false':
+                    value = False
+
+                insObj[key] = value
+
+
         #进行数据库操作
-        db.session.add(modelIns)
+        if insObj['Id'] is None or int(insObj['Id']) == 0:
+            #实例化model类
+            modelIns = self.modelClass(insObj)
+            db.session.add(modelIns)
+        else:
+            #查询记录
+            result = self.modelClass.query.filter(self.modelClass.Id==insObj['Id']).first()
+            #更新记录
+            for key in insObj:
+                setattr(result, key, insObj[key])
+
         db.session.commit()
 
-        return True, modelIns
+        return True, insObj
 
     def delData(self):
-        if type(self.delModel) == list:
-            self.delModel = self.delModel.get('0', None)
+        if type(self.delModel) == dict:
+            self.delModel = self.delModel['models'].get('0', None)
+
+        if not self.delModel:
+            return False, u'删除对象参数有误'
 
         delId = self.delModel.get('Id', None)
         if not delId:
             return False, u'Id参数有误'
 
         #实例化model类
-        insObj = self.modelClass({'Id':delId})
+        #insObj = self.modelClass({'Id':int(delId)})
         #进行数据库操作
-        db.session.delete(insObj)
+        self.modelClass.query.filter(self.modelClass.Id == delId).delete()
+        #db.session.delete(insObj)
         db.session.commit()
 
         return True, {}
