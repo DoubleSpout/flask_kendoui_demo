@@ -56,7 +56,7 @@
                                     "tips":{editable: true, type:'string'},
                                     "isShow":{editable: true, type:'Boolean'},
                                     "updateTime": {editable: true, type: "date" },
-                                    "writeTime": {editable: true, type: "date" },
+                                    "writeTime": {editable: true, type: "date",template: "#= kendo.toString(dateCreated,'yyyy/MM/dd/ HH:mm:ss') #" },
                                     /*"code1":{editable: true, type:'string'},
                                     "code2":{editable: true, type:'string'},
                                     "code3":{editable: true, type:'string'},
@@ -137,8 +137,8 @@
 
                             window.dropdown_init($('input[name="isShow"]'), window.is_show_array)
 
-                    }
-                    //filterable:true
+                    },
+                   filterable:window.filter_obj
                 });
       });
 

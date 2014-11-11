@@ -5,8 +5,10 @@ import flask
 from flask import render_template, request, redirect, url_for, sessions, Response, session
 import urllib
 import types
-from sqlalchemy import Text, desc
+from sqlalchemy import Text, desc, text
 from datetime import datetime
+from kendo.utils.pyquerystring.querystring import parse
+import time
 
 from kendo.models.dbModel import *
 
@@ -88,91 +90,172 @@ class DumpToDict(object):
 
         return tempList
 
-
 #解析kendoui参数的类
 class kendouiData(object):
 
+    #将时间字符串转为字符串
+    def parseTimeStr(self, timeStr):
+
+        try:
+            timeStr = timeStr.split('(')[0].strip()
+            timeString = datetime.strptime(timeStr, "%a %b %d %Y %H:%M:%S %Z 0800").strftime("%Y-%m-%d %H:%M:%S")
+        except Exception as err:
+            return False, err
+
+        return True, timeString
+
+    #将数组拼接成条件字符串
+    def joinCoditionList(self, conditionList=None, curLogic = None):
+        if not conditionList:
+            conditionList = self.ormFilterList
+        if not curLogic:
+            curLogic = 'and'
+
+        tempList = []
+        for item in conditionList:
+            tempList.append('({0})'.format(item))
+
+        return True, curLogic.join(tempList)
+
+
+
+    def genConditionStr(self, filters=None, curFilterList=None):
+        if not filters:
+            return False, None
+
+        if not curFilterList:
+            curFilterList = self.ormFilterList
+
+        self.valueCount += 1
+
+        key = filters.get('field', '')
+        keyIsDate = None
+        dateOk = True
+        operator = filters.get('operator', '')
+        value = filters.get('value', '')
+        genStr = None
+
+        #如果是日期字段
+        if key.lower().find('time') or key.lower().find('date'):
+            keyIsDate = True
+
+        #如果是等于操作符
+        if operator == 'eq':
+            genStr = '({0} = :v{1})'.format(key, self.valueCount)
+            if keyIsDate:
+                dateOk, value = self.parseTimeStr(value)
+
+        #如果是不等于操作
+        elif operator == 'neq':
+            genStr = '({0} <> :v{1})'.format(key, self.valueCount)
+            if keyIsDate:
+                dateOk, value = self.parseTimeStr(value)
+
+        #如果是起始于操作
+        elif operator == 'startswith':
+            genStr = '({0} like :v{1})'.format(key, self.valueCount)
+            value = value+'%'
+
+        #如果包含操作
+        elif operator == 'contains':
+            genStr = '({0} like :v{1})'.format(key, self.valueCount)
+            value = '%'+value+'%'
+
+        #如果是结束于操作
+        elif operator == 'endswith':
+            genStr = '({0} like :v{1})'.format(key, self.valueCount)
+            value = '%'+value
+
+        #如果是不包含操作
+        elif operator == 'doesnotcontain':
+            genStr = '({0} not like :v{1})'.format(key, self.valueCount)
+            value = '%'+value+'%'
+
+        #如果是大于等于操作
+        elif operator == 'gte':
+            genStr = '({0} >= :v{1})'.format(key, self.valueCount)
+            if keyIsDate:
+                dateOk, value = self.parseTimeStr(value)
+
+        #如果是大于操作
+        elif operator == 'gt':
+            genStr = '({0} > :v{1})'.format(key, self.valueCount)
+            if keyIsDate:
+                dateOk, value = self.parseTimeStr(value)
+
+        #如果是小于等于操作
+        elif operator == 'lte':
+            genStr = '({0} < :v{1})'.format(key, self.valueCount)
+            if keyIsDate:
+                dateOk, value = self.parseTimeStr(value)
+
+
+        #如果是小于操作
+        elif operator == 'lt':
+            genStr = '({0} <= :v{1})'.format(key, self.valueCount)
+            if keyIsDate:
+                dateOk, value = self.parseTimeStr(value)
+
+        #如果日期出错
+        if not dateOk:
+            return False, None
+
+        #如果匹配了操作符
+        if genStr:
+            curFilterList.append(genStr)
+            self.ormFilterValue['v{0}'.format(self.valueCount)] = value
+            return True, genStr
+        else:
+            return False
+
+
+
     def parseKendoData(self, paramObj=None):
         if not paramObj:
-            paramObj = self.kendoParam
+            paramObj = parse(self.kendoParam)
 
         self.ormSkip = paramObj.get('skip', 0)
         self.ormLimit = paramObj.get('pageSize', 20)
         self.orderBy = paramObj.get('orderBy', 'Id ')
         self.ormFilterList = []
-        self.ormFilterValue = []
+        self.ormFilterValue = {}
         self.ormFilterStr = ''
 
         filter = paramObj.get('filter', {})
-        filterList = filter.get('filters', [])
+        filterList = filter.get('filters', {})
+        filterGolbalLogic = filter.get('logic', 'and')
 
         #循环条件
-        count = 0
-        for item in filterList:
+        self.valueCount = 0
+        for key in filterList:
+            item = filterList[key]
             if not item:
                 continue
-            count += 1
-            #获得操作变量
-            operator = item.get('operator', None)
-            #获得字段名
-            key = item.get('field', None)
 
-            #如果是等于操作符
-            if operator == 'eq':
-                self.ormFilterList.append('{0} = :v{1}'.format(key, count))
-                self.ormFilterValue.append(item.get('value', None))
+            subFilters = item.get('filters', None)
+            #如果是单条件
+            if not subFilters:
+                ok, genStr = self.genConditionStr(item)
+                if not ok:
+                    return False
+            #如果是多条件
+            elif isinstance(subFilters, dict):
+                subLogic = item.get('logic', 'and')
+                #对子条件进行循环
+                curFilterList = []
+                for key2 in subFilters:
+                    subItem = subFilters[key2]
+                    ok = self.genConditionStr(subItem, curFilterList)
+                #将子条件拼接
+                ok, joinedStr = self.joinCoditionList(curFilterList, subLogic)
+                if not ok:
+                    return False
+                #将子条件做好拼接，放入数组中
+                self.ormFilterList.append(joinedStr)
 
-            #如果是不等于操作
-            elif operator == 'neq':
-                self.ormFilterList.append('{0} <> :v{1}'.format(key, count))
-                self.ormFilterValue.append(item.get('value', None))
+        ok, self.ormFilterStr = self.joinCoditionList(self.ormFilterList, filterGolbalLogic)
 
-            #如果是起始于操作
-            elif operator == 'startswith':
-                self.ormFilterList.append('{0} like :v{1}%'.format(key, count))
-                self.ormFilterValue.append(item.get('value', None))
-
-            #如果是包含操作
-            elif operator == 'contains':
-                self.ormFilterList.append('{0} like :%v{1}%'.format(key, count))
-                self.ormFilterValue.append(item.get('value', None))
-
-            #如果是结束于操作
-            elif operator == 'endswith':
-                self.ormFilterList.append('{0} like :%v{1}'.format(key, count))
-                self.ormFilterValue.append(item.get('value', None))
-
-            #如果是不包含操作
-            elif operator == 'doesnotcontain':
-                self.ormFilterList.append('{0} not like :%v{1}%'.format(key, count))
-                self.ormFilterValue.append(item.get('value', None))
-
-            #如果是大于等于操作
-            elif operator == 'gte':
-                self.ormFilterList.append('{0} not >= :%v{1}%'.format(key, count))
-                self.ormFilterValue.append(item.get('value', None))
-
-            #如果是大于操作
-            elif operator == 'gt':
-                self.ormFilterList.append('{0} not > :%v{1}%'.format(key, count))
-                self.ormFilterValue.append(item.get('value', None))
-
-            #如果是小于等于操作
-            elif operator == 'lte':
-                self.ormFilterList.append('{0} not < :%v{1}%'.format(key, count))
-                self.ormFilterValue.append(item.get('value', None))
-
-            #如果是小于操作
-            elif operator == 'lt':
-                self.ormFilterList.append('{0} not <= :%v{1}%'.format(key, count))
-                self.ormFilterValue.append(item.get('value', None))
-
-        if filter.get('logic', '') == 'and' and len(self.ormFilterList) > 0:
-            self.ormFilterStr = 'and'.join(self.ormFilterList)
-        elif filter.get('logic', '') == 'or' and len(self.ormFilterList) > 0:
-            self.ormFilterStr = 'or'.join(self.ormFilterList)
-
-        return True
+        return ok
 
     def getData(self):
         #将kendoui的参数解析为orm的参数
@@ -183,29 +266,39 @@ class kendouiData(object):
         adminQuery = self.modelClass.query
         #如果有filter条件
         if self.ormFilterStr != '':
-            adminQuery = adminQuery.filter(Text(self.ormFilterStr))\
-                                   .params(*self.ormFilterValue)
+            adminQuery = adminQuery.filter(text(self.ormFilterStr))\
+                                   .params(**self.ormFilterValue)
 
-        adminList = adminQuery\
+        adminQuery = adminQuery\
             .order_by(desc(self.modelClass.Id))\
             .offset(self.ormSkip)\
-            .limit(self.ormLimit)\
-            .all()
+            .limit(self.ormLimit)
 
+        adminList = adminQuery.all()
         #将查询的数据转为dict
         objIns.sqlData = adminList
         #查询总数
-        total = self.modelClass.query.count()
+        total = adminQuery.count()
+
+        #如果总数为0，则显示空数组
+        if total == 0:
+            dataList = []
+        else:
+            dataList = objIns.dumpToList()
+
         return True, {
             'Total': total,
             'AggregateResults':None,
             'Errors':None,
-            'Data': objIns.dumpToList()
+            'Data': dataList
         }
 
 
     #获取并保存数据
     def saveData(self):
+
+        self.saveModel = parse(self.saveModel)
+
         if isinstance(self.saveModel, dict):
             self.saveModel = self.saveModel['models'].get('0', None)
 
@@ -246,6 +339,8 @@ class kendouiData(object):
         return True, insObj
 
     def delData(self):
+        self.delModel = parse(self.delModel)
+
         if type(self.delModel) == dict:
             self.delModel = self.delModel['models'].get('0', None)
 

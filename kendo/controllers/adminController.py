@@ -15,7 +15,6 @@ from formencode.variabledecode import variable_decode
 from urlparse import parse_qsl, parse_qs
 import urllib
 
-from kendo.utils.pyquerystring.querystring import parse
 from kendo.models.adminModel import admin
 from kendo.bussiness.UtilsBl import Utils
 from kendo.bussiness.loginBl import adminBl
@@ -29,8 +28,10 @@ def list():
 def read():
     adminIns = adminBl()
     adminIns.modelClass = admin
+    #获取原生的post字符串
+    rawStr = urllib.unquote(request.stream.read())
     #设置参数
-    adminIns.kendoParam = request.form
+    adminIns.kendoParam = rawStr
 
     #获取列表
     ok, result = adminIns.getList()
@@ -47,7 +48,7 @@ def save():
     #获取原生的post字符串
     rawStr = urllib.unquote(request.stream.read())
     #转换post字符串为dict，并赋值
-    adminIns.saveModel = parse(rawStr)
+    adminIns.saveModel = rawStr
     ok, result = adminIns.saveOne()
     #如果出错
     if not ok:
@@ -63,7 +64,7 @@ def delete():
     #获取原生的post字符串
     rawStr = urllib.unquote(request.stream.read())
     #转换post字符串为dict，并赋值
-    adminIns.delModel = parse(rawStr)
+    adminIns.delModel = rawStr
     #转换post字符串为dict，并赋值
     ok, result = adminIns.delOne()
     #如果出错

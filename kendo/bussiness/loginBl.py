@@ -15,6 +15,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import load_only, joinedload, dynamic_loader, lazyload, defer, undefer
 from sqlalchemy.ext.serializer import loads, dumps
 
+
 from kendo import app
 from kendo.models.adminModel import *
 from kendo.models.roleModel import *
