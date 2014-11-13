@@ -3,10 +3,79 @@
 {% include 'inc/left.html' %}
 
 
-
-
-
 <div id="grid"></div>
+
+<script id="popup_editor" type="text/x-kendo-template">
+
+            <div class="k-edit-label w-800-l">
+                <label for="Id">管理员Id</label>
+            </div>
+            <div data-container-for="Id" class="k-edit-field w-800-r"  data-bind="value:Id">
+                <input type="text" class="k-input k-textbox w-50-inp" name="Id" data-bind="value:Id" readonly="readonly">
+            </div>
+
+
+            <div class="k-edit-label  w-800-l">
+                <label for="admin" >管理员</label>
+            </div>
+            <div data-container-for="admin" class="k-edit-field w-800-r">
+               <input type="text" id="admin" class="k-input k-textbox w-50-inp" name="admin" data-bind="value:admin">
+            </div>
+
+            <div class="k-edit-label  w-800-l">
+                <label for="password" >密码</label>
+            </div>
+            <div data-container-for="password" class="k-edit-field w-800-r">
+               <input type="text" class="k-input k-textbox w-50-inp" name="password" data-bind="value:password" required="required">
+            </div>
+
+            <div class="k-edit-label  w-800-l">
+                <label for="avatar">图片</label>
+            </div>
+            <div data-container-for="avatar" class="k-edit-field w-800-r">
+                <input type="file" name="upload_file" id="upload_file">
+                 <input type="text"  class="k-input k-textbox" style="display:none;" id="appPicture_inp" name="avatar" data-bind="value:picture">
+            </div>
+
+
+            <div class="k-edit-label  w-800-l">
+                <label for="tips" >备注</label>
+            </div>
+            <div data-container-for="tips" class="k-edit-field w-800-r">
+               <textarea id="intro" type="text" class="k-input k-textbox w-90-inp" name="tips" data-bind="value:tips"></textarea>
+            </div>
+
+
+            <div class="k-edit-label  w-800-l">
+                <label for="isShow">是否启用</label>
+            </div>
+            <div data-container-for="isShow" class="k-edit-field w-800-r">
+               <input type="number" id="isShow_inp" class="k-input k-textbox" name="isShow" data-bind="value:isShow" >
+            </div>
+
+            <div class="k-edit-label  w-800-l">
+                <label for="updateTime">更新日期</label>
+            </div>
+            <div data-container-for="writeTime" class="k-edit-field w-800-r">
+               <input type="text" id="updateTime" class="k-input k-textbox " name="updateTime" data-bind="value:updateTime" readonly="readonly">
+            </div>
+
+            <div class="k-edit-label  w-800-l">
+                <label for="writeTime">创建日期</label>
+            </div>
+            <div data-container-for="writeTime" class="k-edit-field w-800-r">
+               <input type="text" id="writeTime" class="k-input k-textbox " name="writeTime" data-bind="value:writeTime">
+            </div>
+
+
+
+        </script>
+
+
+
+
+
+
 
 
 <script>
@@ -53,10 +122,11 @@
                                     "Id": { editable: false, type:'number' },
                                     "admin": { editable: true, type:'string'},
                                     "password": { editable: true, type:'string'},
+                                    "avatar": { editable: true, type:'string'},
                                     "tips":{editable: true, type:'string'},
                                     "isShow":{editable: true, type:'Boolean'},
                                     "updateTime": {editable: true, type: "date" },
-                                    "writeTime": {editable: true, type: "date",template: "#= kendo.toString(dateCreated,'yyyy/MM/dd/ HH:mm:ss') #" },
+                                    "writeTime": {editable: true, type: "date",template: "#= kendo.toString(dateCreated,'yyyy/MM/dd/ HH:mm:ss') #" }
                                     /*"code1":{editable: true, type:'string'},
                                     "code2":{editable: true, type:'string'},
                                     "code3":{editable: true, type:'string'},
@@ -85,6 +155,11 @@
                             field: "password",
                             title: "密码",
                             hidden:true
+                        },
+                        {
+                            field: "avatar",
+                            title: "头像",
+                            template: "<img src='#=avatar#' width=50 height=50/>"
                         },
                         {
                             field: "tips",
@@ -129,14 +204,20 @@
                     editable: {
                         confirmation:'确定删除吗？',
                         mode:"popup",
+                        template: kendo.template($("#popup_editor").html()),
                         window : {
-                                title: "添加/修改"
+                                title: "添加/修改",
+                                width:800
                             }
                         },
                     edit:function(e){
+                            $('.k-window-content').addClass('w-800-content');
+                            $('.k-edit-form-container').addClass('w-800-content');
 
-                            window.dropdown_init($('input[name="isShow"]'), window.is_show_array)
+                            window.dropdown_init($('#isShow_inp'), window.is_show_array)
 
+                            multiUpload($("#upload_file"), $('#appPicture_inp'), 1)
+                            $("#intro").kendoEditor(window.kendo_edit_option);
                     },
                    filterable:window.filter_obj
                 });

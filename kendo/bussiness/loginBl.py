@@ -205,6 +205,51 @@ class adminBl(kendouiData):
             'isMenu':False,
         }))
 
+        roleIns.auths.append(auth(
+            {
+            'authName':'上传文件',
+            'groupName':authName,
+            'authUrl':'/upload/save',
+            'isMenu':False,
+        }))
+        roleIns.auths.append(auth(
+            {
+            'authName':'删除文件',
+            'groupName':authName,
+            'authUrl':'/upload/delete',
+            'isMenu':False,
+        }))
+
+        roleIns.auths.append(auth(
+            {
+            'authName':'编辑器读取目录',
+            'groupName':authName,
+            'authUrl':'/thumb/read',
+            'isMenu':False,
+        }))
+        roleIns.auths.append(auth(
+            {
+            'authName':'编辑器删除文件',
+            'groupName':authName,
+            'authUrl':'/thumb/delete',
+            'isMenu':False,
+        }))
+        roleIns.auths.append(auth(
+            {
+            'authName':'编辑器创建目录',
+            'groupName':authName,
+            'authUrl':'/thumb/save',
+            'isMenu':False,
+        }))
+        roleIns.auths.append(auth(
+            {
+            'authName':'编辑器上传文件',
+            'groupName':authName,
+            'authUrl':'/thumb/upload',
+            'isMenu':False,
+        }))
+
+
         adminIns.roles.append(roleIns)
         #将修改提交到数据库
         db.session.add(adminIns)
@@ -247,7 +292,7 @@ class adminBl(kendouiData):
 
             #如果没有访问权限，则报错
             if not hasAuth:
-                return render_template('errorPage.html', errotTitle=u'403 您没有权限'), 403
+                return render_template('errorPage.html', errorTitle=u'403 您没有权限'), 403
 
             #将admin写入g对象
             g.admin = adminObj

@@ -17,6 +17,7 @@ class admin(db.Model, DumpToDict):
     Id = db.Column(db.Integer, primary_key=True, index=True)
     admin = db.Column(db.String(50), unique=True, )
     password = db.Column(db.String(50))
+    avatar = db.Column(db.String(255))
     tips = db.Column(db.String(50))
     isShow = db.Column(db.Boolean, default=True)
     updateTime = db.Column(db.DateTime, onupdate=datetime.now, default=datetime.now)
@@ -35,6 +36,8 @@ class admin(db.Model, DumpToDict):
         self.password = modelDict.get('password', None)
         self.tips = modelDict.get('tips', None)
         self.isShow = modelDict.get('isShow', True)
+        self.writeTime = modelDict.get('writeTime', datetime.now)
+        self.avatar = modelDict.get('avatar', None)
 
 
 #关联表

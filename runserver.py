@@ -57,9 +57,10 @@ def mkdirFn(path):
 #计算路径，然后创建文件夹
 curPath = os.path.split(os.path.realpath(__file__))[0]
 logsPath = curPath + os.sep + 'logs'
+uploadPath = curPath + os.sep + 'kendo' + os.sep + 'static' + os.sep +'upload'
 
-mkdirFn(logsPath)
-
+mkdirFn(logsPath)#创建日志路径
+mkdirFn(uploadPath)#创建上传路径
 
 from kendo.controllers import *
 from kendo.models import *

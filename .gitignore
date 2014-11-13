@@ -1,4 +1,6 @@
 .pyc
-./logs
+./logs/
 .idea
 *.pyc
+./kendo/upload/
+*.log

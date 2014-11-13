@@ -9,11 +9,51 @@ from sqlalchemy import Text, desc, text
 from datetime import datetime
 from kendo.utils.pyquerystring.querystring import parse
 import time
+from hashlib import md5
 
+from kendo import app
 from kendo.models.dbModel import *
 
 #define utils Class
 class Utils(object):
+
+     @staticmethod
+     def checkAndGetExt(fileIns, isMd5Filename):
+        if not fileIns:
+            return False, 'empty file'
+
+        ok, extName = Utils.allowed_file(fileIns.filename)
+        #判断扩展名是否匹配
+        if not ok:
+            return False, 'invalid file type'
+
+        md5FileName = None
+        if isMd5Filename:
+            md5FileName = Utils.md5(fileIns.filename + str(Utils.now()))+'.'+extName
+
+        return True, extName, md5FileName
+
+     @staticmethod
+     def md5(str):
+        m = md5()
+        m.update(str)
+        return m.hexdigest().lower()
+
+     @staticmethod
+     def now():
+        return int(time.time())
+
+     @staticmethod
+     def allowed_file(filename):
+         '.' in filename and \
+           filename.rsplit('.', 1)[1] in app.config.get("ALLOWED_EXTENSIONS")
+         if not '.' in filename:
+             return False, None
+         extName = filename.rsplit('.', 1)[1]
+         if extName in app.config.get("ALLOWED_EXTENSIONS"):
+            return True, extName
+         else:
+            return False
 
 
      @staticmethod

@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, request
 from kendo import app
-from kendo.controllers import loginController
-from kendo.controllers import adminController
-from kendo.controllers import roleController
-from kendo.controllers import authController
-from kendo.controllers import homeController
+from kendo.controllers import loginController, adminController, roleController, authController, homeController, \
+    multiUploadController, editThumbController
+
+
+#附件上传
+app.add_url_rule('/upload/save', 'multiUploadSave', multiUploadController.save, methods=['POST'])
+app.add_url_rule('/upload/delete', 'multiUploadRemove', multiUploadController.delete, methods=['POST'])
+
+#文本编辑器上传和读取
+app.add_url_rule('/thumb/read', 'thumbRead', editThumbController.read, methods=['POST'])
+app.add_url_rule('/thumb/delete', 'thumbDelete', editThumbController.delete, methods=['POST'])
+app.add_url_rule('/thumb/save', 'thumbSave', editThumbController.save, methods=['POST'])
+app.add_url_rule('/thumb/upload', 'thumbUpload', editThumbController.upload, methods=['POST'])
 
 
 #登录的控制器
