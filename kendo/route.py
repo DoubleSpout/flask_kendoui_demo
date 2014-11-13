@@ -14,6 +14,7 @@ app.add_url_rule('/thumb/read', 'thumbRead', editThumbController.read, methods=[
 app.add_url_rule('/thumb/delete', 'thumbDelete', editThumbController.delete, methods=['POST'])
 app.add_url_rule('/thumb/save', 'thumbSave', editThumbController.save, methods=['POST'])
 app.add_url_rule('/thumb/upload', 'thumbUpload', editThumbController.upload, methods=['POST'])
+app.add_url_rule('/thumb/get', 'thumbGet', editThumbController.get, methods=['GET'])
 
 
 #登录的控制器

@@ -5,13 +5,12 @@
 import os
 import flask
 import json
-from flask import flash, render_template, request, redirect, url_for, sessions, Response, session, make_response
+from flask import flash, render_template, request, redirect, url_for, sessions, Response, session, make_response, send_from_directory
 import httplib
 import urllib
 import json
 from xml.dom.minidom import parse, parseString
 from datetime import datetime
-from formencode.variabledecode import variable_decode
 from urlparse import parse_qsl, parse_qs
 import urllib
 import werkzeug
@@ -20,6 +19,15 @@ from kendo import app
 from kendo.models.adminModel import admin
 from kendo.bussiness.UtilsBl import Utils
 from kendo.bussiness.loginBl import adminBl
+
+
+
+def get():
+    fileName = request.args.get('path', None)
+    if not fileName:
+        return 'empty path', 404
+
+    return send_from_directory(app.config.get('UPLOAD_FOLDER'), fileName)
 
 
 @adminBl.authLogin
@@ -42,7 +50,7 @@ def read():
 
 @adminBl.authLogin
 def upload():
-    file = request.files.get('upload_file', None)
+    file = request.files.get('file', None)
     #检查格式
     ok, extName, saveFileName = Utils.checkAndGetExt(file, True)
     if not ok:

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys,os
+from urllib import quote_plus as urlquote
+
 def cur_file_dir():
     #获取脚本路径
     path = sys.path[0]
@@ -15,7 +17,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     ADMIN_PASSWORD_SALT = '123'
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:@192.168.150.3/kendo_test'
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:{0}@1.1.1.1/kendo_test'.format(urlquote('111'))
     SQLALCHEMY_POOL_SIZE = 5
     SQLALCHEMY_POOL_RECYCLE = 499
     SQLALCHEMY_POOL_TIMEOUT = 60

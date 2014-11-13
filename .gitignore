@@ -2,5 +2,7 @@
 ./logs/
 .idea
 *.pyc
-./kendo/upload/
+./kendo/static/upload/
 *.log
+/logs
+/kendo/static/upload

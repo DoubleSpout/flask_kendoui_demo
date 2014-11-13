@@ -117,7 +117,7 @@ window.kendo_edit_option = {
                     url: "/thumb/create",
                     type: "POST"
                 },
-                thumbnailUrl: "/static/upload/",
+                thumbnailUrl: "/thumb/get",
                 uploadUrl: "/thumb/upload",
                 imageUrl: "/static/upload/{0}"
            }

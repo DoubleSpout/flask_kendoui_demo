@@ -19,13 +19,13 @@ class Utils(object):
 
      @staticmethod
      def checkAndGetExt(fileIns, isMd5Filename):
-        if not fileIns:
-            return False, 'empty file'
+        if not isinstance(fileIns, object):
+            return False, 'empty file', None
 
         ok, extName = Utils.allowed_file(fileIns.filename)
         #判断扩展名是否匹配
         if not ok:
-            return False, 'invalid file type'
+            return False, 'invalid file type', None
 
         md5FileName = None
         if isMd5Filename:
@@ -49,11 +49,11 @@ class Utils(object):
            filename.rsplit('.', 1)[1] in app.config.get("ALLOWED_EXTENSIONS")
          if not '.' in filename:
              return False, None
-         extName = filename.rsplit('.', 1)[1]
+         extName = filename.rsplit('.', 1)[1].lower()
          if extName in app.config.get("ALLOWED_EXTENSIONS"):
             return True, extName
          else:
-            return False
+            return False, None
 
 
      @staticmethod
