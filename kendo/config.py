@@ -17,14 +17,14 @@ class Config(object):
     DEBUG = False
     TESTING = False
     ADMIN_PASSWORD_SALT = '123'
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:@192.168.150.3/kendo_test'
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:@127.0.0.1/kendo_test'
     SQLALCHEMY_POOL_SIZE = 5
     SQLALCHEMY_POOL_RECYCLE = 499
     SQLALCHEMY_POOL_TIMEOUT = 60
 
     
     HOST = "0.0.0.0"
-    PORT = 5000
+    PORT = 9000
     PASSPORT_KEY = "aaaaaaa"
 
     LOG_PATH = cur_file_dir()+os.sep+'logs'

@@ -27,6 +27,8 @@ class auth(db.Model, DumpToDict):
 
     def __init__(self, modelDict={}):
         self.Id = modelDict.get('Id', None)
+        if self.Id == 0:
+            self.Id = None
         self.authName = modelDict.get('authName', None)
         self.groupName = modelDict.get('groupName', None)
         self.authUrl = modelDict.get('authUrl', None)

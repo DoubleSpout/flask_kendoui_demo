@@ -26,7 +26,7 @@
                 <label for="password" >密码</label>
             </div>
             <div data-container-for="password" class="k-edit-field w-800-r">
-               <input type="text" class="k-input k-textbox w-50-inp" name="password" data-bind="value:password" required="required">
+               <input type="text" class="k-input k-textbox w-50-inp" name="password" data-bind="value:password" required="required" maxlength="30">
             </div>
 
             <div class="k-edit-label  w-800-l">
@@ -45,6 +45,13 @@
                <textarea id="intro" type="text" class="k-input k-textbox w-90-inp" name="tips" data-bind="value:tips"></textarea>
             </div>
 
+            <div class="k-edit-label  w-800-l">
+                <label for="roles" >包括角色</label>
+            </div>
+            <div data-container-for="roles" class="k-edit-field w-800-r">
+                <input type="text" class="k-input k-textbox w-50-inp" id="roles_inp" name="roles"  data-bind="value:roles" >
+                <input type="hidden" id="roles" class="k-input k-textbox w-50-inp" data-bind="value:roles" >
+            </div>
 
             <div class="k-edit-label  w-800-l">
                 <label for="isShow">是否启用</label>
@@ -79,6 +86,11 @@
 
 
 <script>
+    window.allRoleList = []
+    $.post('/role/read', {skip:0, page:1, pageSize:99999}, function(d){
+        window.allRoleList = d.Data
+
+    }, 'json')
  $(function () {
 
                 var DataHost = window.DataHost,
@@ -111,11 +123,27 @@
                                 complete: function(e) {
                                             $("#grid").data("kendoGrid").dataSource.read();
                                     }
-                            }
+                            },
+                            parameterMap:function(data, type){
+                                if((type == 'update' || type == 'create') && Array.isArray(data.models[0].roles)){
+                                    data.models[0].roles = JSON.stringify(data.models[0].roles)
+                                }
+                               return data
+                           }
                         },
                         schema: {
                             total: "Total",
                             data: "Data",
+                            parse:function(data){
+                                var listData = data.Data;
+                                if(Array.isArray(listData)){
+                                    listData.map(function(obj){
+                                        obj.roles = JSON.stringify(obj.roles)
+                                        return obj
+                                    })
+                                }
+                                return data
+                            },
                             model: {
                                 id:"Id",
                                 fields: {
@@ -126,6 +154,7 @@
                                     "tips":{editable: true, type:'string'},
                                     "isShow":{editable: true, type:'Boolean'},
                                     "updateTime": {editable: true, type: "date" },
+                                    "roles":{ editable: true, type:'Array'},
                                     "writeTime": {editable: true, type: "date",template: "#= kendo.toString(dateCreated,'yyyy/MM/dd/ HH:mm:ss') #" }
                                     /*"code1":{editable: true, type:'string'},
                                     "code2":{editable: true, type:'string'},
@@ -164,6 +193,11 @@
                         {
                             field: "tips",
                             title: "备注"
+                        },
+                        {
+                            field: "roles",
+                            title: "包含角色",
+                            hidden:true
                         },
                         {
                             field: "isShow",
@@ -221,6 +255,21 @@
 
                             $('#writeTime').kendoDateTimePicker();
                             $('#updateTime').kendoDateTimePicker();
+
+
+                            var authListData =  JSON.parse($('#roles').val()|| '[]')
+                            var multiVal = []
+                            authListData.forEach(function(authObj){
+                                multiVal.push(authObj.Id)
+                            })
+                            $("#roles_inp").kendoMultiSelect({
+                                dataTextField: "roleName",
+                                dataValueField: "Id",
+                                dataSource: window.allRoleList
+                            })
+                            var multiselect = $("#roles_inp").data("kendoMultiSelect");
+                            multiselect.value(multiVal);
+                            $("#roles_inp").change();
                     },
                    filterable:window.filter_obj
                 });

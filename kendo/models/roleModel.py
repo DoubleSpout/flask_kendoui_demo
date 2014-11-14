@@ -28,6 +28,8 @@ class role(db.Model, DumpToDict):
 
     def __init__(self, modelDict={}):
         self.Id = modelDict.get('Id', None)
+        if self.Id == 0:
+            self.Id = None
         self.roleName = modelDict.get('roleName', None)
         self.roleTips = modelDict.get('roleTips', None)
 

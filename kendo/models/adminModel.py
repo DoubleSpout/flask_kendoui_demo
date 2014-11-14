@@ -32,11 +32,12 @@ class admin(db.Model, DumpToDict):
 
     def __init__(self, modelDict={}):
         self.Id = modelDict.get('Id', None)
+        if self.Id == 0:
+            self.Id = None
         self.admin = modelDict.get('admin', None)
         self.password = modelDict.get('password', None)
         self.tips = modelDict.get('tips', None)
         self.isShow = modelDict.get('isShow', True)
-        self.writeTime = modelDict.get('writeTime', datetime.now)
         self.avatar = modelDict.get('avatar', None)
 
 

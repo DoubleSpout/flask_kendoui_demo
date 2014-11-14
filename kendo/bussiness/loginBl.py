@@ -15,12 +15,12 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import load_only, joinedload, dynamic_loader, lazyload, defer, undefer
 from sqlalchemy.ext.serializer import loads, dumps
 
-
+from kendo.utils.pyquerystring.querystring import parse
 from kendo import app
 from kendo.models.adminModel import *
 from kendo.models.roleModel import *
 from kendo.models.authModel import *
-from kendo.bussiness.UtilsBl import kendouiData, SimpleBl
+from kendo.bussiness.UtilsBl import kendouiData, SimpleBl, Utils
 from kendo.bussiness.LoggerBl import log
 from kendo.models.dbModel import db
 
@@ -302,21 +302,147 @@ class adminBl(SimpleBl):
 
         return decorated_function
 
-    # #获取列表页
-    # def getList(self):
-    #     return self.getData()
-    #
-    #
-    #
-    # #添加或者更新一个管理员信息
-    # def saveOne(self):
-    #
-    #     return self.saveData()
-    #
-    # #删除一个管理员
-    # def delOne(self):
-    #
-    #     return self.delData()
+    #获取列表页
+    def getList(self):
+        ok, dict = self.getData()
+
+        if not ok:
+            return ok, dict
+        #如果为空
+        if len(self.sqlData) == 0:
+            return ok, dict
+        resultList = []
+
+        for item in self.sqlData:
+            resultDict = {}
+            resultDict['Id'] = item.Id
+            resultDict['admin'] = item.admin
+            resultDict['password'] = item.password
+            resultDict['avatar'] = item.avatar
+            resultDict['tips'] = item.tips
+            resultDict['isShow'] = item.isShow
+            resultDict['code1'] = item.code1
+            resultDict['code2'] = item.code2
+            resultDict['code3'] = item.code3
+            resultDict['code4'] = item.code4
+            resultDict['updateTime'] = item.updateTime.strftime("%Y-%m-%d %H:%M:%S")
+            resultDict['writeTime'] = item.writeTime.strftime("%Y-%m-%d %H:%M:%S")
+            resultDict['roles'] = []
+            #获取角色的权限列表
+            if isinstance(item.roles, list) and len(item.roles) > 0:
+                for roleIns in item.roles:
+                    resultDict['roles'].append({
+                        'Id':roleIns.Id,
+                        'roleName':roleIns.roleName,
+                        'roleTips':roleIns.roleTips,
+                        'code1':roleIns.code1,
+                        'code2':roleIns.code2,
+                        'updateTime':roleIns.updateTime.strftime("%Y-%m-%d %H:%M:%S"),
+                        'writeTime':roleIns.writeTime.strftime("%Y-%m-%d %H:%M:%S")
+                    })
+
+            resultList.append(resultDict)
+
+        return ok, {
+            'Total': dict['Total'],
+            'AggregateResults':None,
+            'Errors':None,
+            'Data': resultList
+        }
+
+
+
+    #添加或者更新一个管理员信息
+    def saveOne(self):
+        self.saveModel = parse(self.saveModel)
+        if isinstance(self.saveModel, dict):
+            self.saveModel = self.saveModel['models'].get('0', None)
+        if not self.saveModel:
+            return False, u'更新对象参数有误'
+        try:
+            self.saveModel['roles'] = json.loads(self.saveModel.get('roles', '[]'))
+        except Exception as err:
+            return False, err
+
+        #进行数据库操作
+        if self.saveModel['Id'] is None or int(self.saveModel['Id']) == 0:
+             #实例化model类
+             self.saveModel['Id'] = None
+             #将密码改为md5
+             self.saveModel['password'] = Utils.md5(self.saveModel['password']+app.config['ADMIN_PASSWORD_SALT'])
+             #转换false
+             if self.saveModel['isShow'] == 'false:':
+                 self.saveModel['isShow'] = False
+             else:
+                 self.saveModel['isShow'] = True
+             #实例化
+             modelIns = self.modelClass(self.saveModel)
+             db.session.add(modelIns)
+             db.session.flush()
+             for roleObj in self.saveModel['roles']:
+                 tempIns = adminRole({
+                     'adminId':modelIns.Id,
+                     'roleId':int(roleObj['Id'])
+                 })
+                 db.session.add(tempIns)
+        else:
+            #更新记录
+            #如果修改了密码，不是32位md5了
+            if len(self.saveModel['password']) != 32:
+                self.saveModel['password'] = Utils.md5(self.saveModel['password']+app.config['ADMIN_PASSWORD_SALT'])
+
+            #查询记录
+            queryId = int(self.saveModel['Id'])
+            result = self.modelClass.query.filter(self.modelClass.Id==queryId).first()
+            if not result:
+                return False,
+            #删除已存在记录
+            adminRole.query.filter(adminRole.adminId == queryId).delete()
+            #更新到数据库
+            db.session.flush()
+            #循环插入新分配的权限
+            for roleObj in self.saveModel['roles']:
+                 tempIns = adminRole({
+                     'adminId':queryId,
+                     'roleId': int(roleObj['Id'])
+                 })
+                 db.session.add(tempIns)
+            #更新记录
+            result.admin = self.saveModel.get('admin',None)
+            result.password = self.saveModel.get('password',None)
+            result.avatar = self.saveModel.get('avatar',None)
+            result.tips = self.saveModel.get('tips',None)
+            isShow = self.saveModel.get('isShow',None)
+            #复制isshow
+            if isShow == 'true':
+                isShow = True
+            else:
+                isShow = False
+            result.isShow = isShow
+            result.code1 = self.saveModel.get('code1',None)
+            result.code2 = self.saveModel.get('code2',None)
+            result.code3 = self.saveModel.get('code3',None)
+            result.code4 = self.saveModel.get('code4',None)
+
+
+        #提交到数据库
+        db.session.commit()
+        return True, [self.saveModel]
+
+    #删除一个管理员
+    def delOne(self):
+        self.delModel = parse(self.delModel)
+        if isinstance(self.delModel, dict):
+            self.delModel = self.delModel['models'].get('0', None)
+        if not self.delModel:
+            return False, u'更新对象参数有误'
+
+        delId = self.delModel['Id']
+        adminRole.query.filter(adminRole.adminId == delId).delete()
+        self.modelClass.query.filter(self.modelClass.Id == delId).delete()
+        db.session.commit()
+
+        return True, []
 
 
 

@@ -35,7 +35,7 @@
             </div>
             <div data-container-for="auths" class="k-edit-field w-800-r">
                 <input type="text" class="k-input k-textbox w-50-inp" id="auths_inp" name="auths"  data-bind="value:auths" >
-               <input type="hidden" id="auths" class="k-input k-textbox w-50-inp" data-bind="value:auths" >
+                <input type="hidden" id="auths" class="k-input k-textbox w-50-inp" data-bind="value:auths" >
             </div>
 
             <div class="k-edit-label  w-800-l">
@@ -119,10 +119,12 @@
                             data: "Data",
                             parse:function(data){
                                 var listData = data.Data;
-                                listData.map(function(obj){
-                                    obj.auths = JSON.stringify(obj.auths)
-                                    return obj
-                                })
+                                if(Array.isArray(listData)){
+                                    listData.map(function(obj){
+                                        obj.auths = JSON.stringify(obj.auths)
+                                        return obj
+                                    })
+                                }
                                 return data
                             },
                             model: {
@@ -131,7 +133,7 @@
                                     "Id": { editable: false, type:'number' },
                                     "roleName": { editable: true, type:'string'},
                                     "roleTips": { editable: true, type:'string'},
-                                    "auths":{ editable: true, type:'array'},
+                                    "auths":{ editable: true, type:'Array'},
                                     "updateTime": {editable: true, type: "date", template: "#= kendo.toString(dateCreated,'yyyy/MM/dd/ HH:mm:ss') #" },
                                     "writeTime": {editable: true, type: "date", template: "#= kendo.toString(dateCreated,'yyyy/MM/dd/ HH:mm:ss') #" }
                                     /*"code1":{editable: true, type:'string'},
@@ -211,13 +213,10 @@
                             $('.k-edit-form-container').addClass('w-800-content');
 
                             var authListData =  JSON.parse($('#auths').val()|| '[]')
-
                             var multiVal = []
                             authListData.forEach(function(authObj){
                                 multiVal.push(authObj.Id)
                             })
-                            //multiVal = multiVal.split(',')
-
                             $("#auths_inp").kendoMultiSelect({
                                 dataTextField: "authName",
                                 dataValueField: "Id",

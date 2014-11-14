@@ -81,12 +81,9 @@ class roleBl(SimpleBl):
     #
     #添加或者更新一条记录
     def saveOne(self):
-
         self.saveModel = parse(self.saveModel)
-
         if isinstance(self.saveModel, dict):
             self.saveModel = self.saveModel['models'].get('0', None)
-
         if not self.saveModel:
             return False, u'更新对象参数有误'
         try:
@@ -96,30 +93,58 @@ class roleBl(SimpleBl):
 
         #进行数据库操作
         if self.saveModel['Id'] is None or int(self.saveModel['Id']) == 0:
-            #实例化model类
-            modelIns = self.modelClass(self.saveModel)
-            db.session.add(modelIns)
-            db.session.commit()
-            for authObj in self.saveModel['auths']:
-                tempIns = roleAuth({
-                    'roleId':modelIns.Id,
-                    'authId':authObj['Id']
-                })
-                db.session.add(tempIns)
+             #实例化model类
+             self.saveModel['Id'] = None
+             modelIns = self.modelClass(self.saveModel)
+             db.session.add(modelIns)
+             db.session.flush()
+             for authObj in self.saveModel['auths']:
+                 tempIns = roleAuth({
+                     'roleId':modelIns.Id,
+                     'authId':int(authObj['Id'])
+                 })
+                 db.session.add(tempIns)
         else:
             #查询记录
-            result = self.modelClass.query.filter(self.modelClass.Id==self.saveModel['Id']).first()
+            queryId = int(self.saveModel['Id'])
+            result = self.modelClass.query.filter(self.modelClass.Id==queryId).first()
+            if not result:
+                return False,
+            #删除已存在记录
+            roleAuth.query.filter(roleAuth.roleId == queryId).delete()
+            #更新到数据库
+            db.session.flush()
+            #循环插入新分配的权限
+            for authObj in self.saveModel['auths']:
+                 tempIns = roleAuth({
+                     'roleId':queryId,
+                     'authId':int(authObj['Id'])
+                 })
+                 db.session.add(tempIns)
             #更新记录
-            for key in self.saveModel:
-                setattr(result, key, self.saveModel[key])
+            result.roleName = self.saveModel.get('roleName',None)
+            result.roleTips = self.saveModel.get('roleTips',None)
+            result.code1 = self.saveModel.get('code1',None)
+            result.code2 = self.saveModel.get('code2',None)
 
+        #提交到数据库
         db.session.commit()
-
-        return True,{}
+        return True, [self.saveModel]
     #
     # #删除一条记录
     def delOne(self):
-         return self.delData()
+        self.delModel = parse(self.delModel)
+        if isinstance(self.delModel, dict):
+            self.delModel = self.delModel['models'].get('0', None)
+        if not self.delModel:
+            return False, u'更新对象参数有误'
+
+        delId = self.delModel['Id']
+        roleAuth.query.filter(roleAuth.roleId == delId).delete()
+        role.query.filter(role.Id == delId).delete()
+        db.session.commit()
+
+        return True, []
 
 
 
