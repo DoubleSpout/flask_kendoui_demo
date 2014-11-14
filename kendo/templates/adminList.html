@@ -218,10 +218,14 @@
 
                             multiUpload($("#upload_file"), $('#appPicture_inp'), 1)
                             $("#intro").kendoEditor(window.kendo_edit_option);
+
+                            $('#writeTime').kendoDateTimePicker();
+                            $('#updateTime').kendoDateTimePicker();
                     },
                    filterable:window.filter_obj
                 });
       });
+
 
 
 </script>

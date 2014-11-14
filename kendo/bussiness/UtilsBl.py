@@ -89,6 +89,10 @@ class Utils(object):
         return decorated_function
 
 
+
+
+
+
 class DumpToDict(object):
     def __init__(self):
         pass
@@ -303,22 +307,23 @@ class kendouiData(object):
         #实例化admin类
         objIns = self.modelClass()
         #查询数据
-        adminQuery = self.modelClass.query
+        objQuery = self.modelClass.query
         #如果有filter条件
         if self.ormFilterStr != '':
-            adminQuery = adminQuery.filter(text(self.ormFilterStr))\
+            adminQuery = objQuery.filter(text(self.ormFilterStr))\
                                    .params(**self.ormFilterValue)
 
-        adminQuery = adminQuery\
+        objQuery = objQuery\
             .order_by(desc(self.modelClass.Id))\
             .offset(self.ormSkip)\
             .limit(self.ormLimit)
 
-        adminList = adminQuery.all()
+        dataQueryList = objQuery.all()
         #将查询的数据转为dict
-        objIns.sqlData = adminList
+        self.sqlData = objIns.sqlData = dataQueryList
+
         #查询总数
-        total = adminQuery.count()
+        total = objQuery.count()
 
         #如果总数为0，则显示空数组
         if total == 0:
@@ -401,3 +406,18 @@ class kendouiData(object):
         return True, {}
 
 
+class SimpleBl(kendouiData):
+    def __init__(self):
+        pass
+    #获取列表页
+    def getList(self):
+        return self.getData()
+
+    #添加或者更新一条记录
+    def saveOne(self):
+
+        return self.saveData()
+
+    #删除一条记录
+    def delOne(self):
+        return self.delData()

@@ -20,14 +20,14 @@ from kendo import app
 from kendo.models.adminModel import *
 from kendo.models.roleModel import *
 from kendo.models.authModel import *
-from kendo.bussiness.UtilsBl import kendouiData
+from kendo.bussiness.UtilsBl import kendouiData, SimpleBl
 from kendo.bussiness.LoggerBl import log
 from kendo.models.dbModel import db
 
 
 
 
-class adminBl(kendouiData):
+class adminBl(SimpleBl):
 
     def __init__(self, username=None, password=None, tips=None):
         self.username = username
@@ -302,21 +302,21 @@ class adminBl(kendouiData):
 
         return decorated_function
 
-    #获取列表页
-    def getList(self):
-        return self.getData()
-
-
-
-    #添加或者更新一个管理员信息
-    def saveOne(self):
-
-        return self.saveData()
-
-    #删除一个管理员
-    def delOne(self):
-
-        return self.delData()
+    # #获取列表页
+    # def getList(self):
+    #     return self.getData()
+    #
+    #
+    #
+    # #添加或者更新一个管理员信息
+    # def saveOne(self):
+    #
+    #     return self.saveData()
+    #
+    # #删除一个管理员
+    # def delOne(self):
+    #
+    #     return self.delData()
 
 
 

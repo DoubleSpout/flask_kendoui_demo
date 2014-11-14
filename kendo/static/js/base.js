@@ -2,10 +2,11 @@ $(function(){
 
 
 //高亮当前路径
-$('#leftBar a').each(function(){
+$('#leftBar').find('a').each(function(){
     if(location.pathname.indexOf('/home/index') == 0) return;
     var aHref = $(this).attr('href')
-    if(location.pathname.indexOf('aHref') == 0){
+
+    if(location.pathname.indexOf(aHref) == 0){
         $(this).parent().addClass('active')
     }
 })
@@ -49,6 +50,11 @@ window.editor_tools = [
 window.is_show_array = [
               { text: "启用", value: true },
               { text: "不启用", value: false}
+            ]
+
+window.is_on_off = [
+              { text: "是", value: true },
+              { text: "否", value: false}
             ]
 
 window.toolbarAry = [
