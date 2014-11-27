@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import sys,os
+import sys, os
 from urllib import quote_plus as urlquote
+
 
 def cur_file_dir():
     #获取脚本路径
@@ -12,7 +13,7 @@ def cur_file_dir():
         path = os.path.dirname(path)
     return path
 
-    
+
 class Config(object):
     DEBUG = False
     TESTING = False
@@ -22,21 +23,20 @@ class Config(object):
     SQLALCHEMY_POOL_RECYCLE = 499
     SQLALCHEMY_POOL_TIMEOUT = 60
 
-    
     HOST = "0.0.0.0"
     PORT = 9000
     PASSPORT_KEY = "aaaaaaa"
 
-    LOG_PATH = cur_file_dir()+os.sep+'logs'
-    UPLOAD_FOLDER = cur_file_dir()+ os.sep + 'kendo' + os.sep + 'static' + os.sep + 'upload'
+    LOG_PATH = cur_file_dir() + os.sep + 'logs'
+    UPLOAD_FOLDER = cur_file_dir() + os.sep + 'kendo' + os.sep + 'static' + os.sep + 'upload'
     ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
 
     LOGGER_NAME = 'mylog'
     SESSION_KEY = '05599c095f5900cc288bcadd9f9b4c34'
     P3P_HEADER = 'CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR'
-    
-    
+
+
 class Production(Config):
     ENV = 'Production'
     SQLALCHEMY_DATABASE_URI = 'mysql://root:@192.168.1.143/kendo_test'

@@ -180,7 +180,7 @@ class kendouiData(object):
         genStr = None
 
         #如果是日期字段
-        if key.lower().find('time') or key.lower().find('date'):
+        if key.lower().find('time') > 0 or key.lower().find('date') > 0:
             keyIsDate = True
 
         #如果是等于操作符
@@ -313,7 +313,7 @@ class kendouiData(object):
             adminQuery = objQuery.filter(text(self.ormFilterStr))\
                                    .params(**self.ormFilterValue)
 
-        objQuery = objQuery\
+        objQuery = adminQuery\
             .order_by(desc(self.modelClass.Id))\
             .offset(self.ormSkip)\
             .limit(self.ormLimit)
