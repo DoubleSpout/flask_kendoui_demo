@@ -310,10 +310,10 @@ class kendouiData(object):
         objQuery = self.modelClass.query
         #如果有filter条件
         if self.ormFilterStr != '':
-            adminQuery = objQuery.filter(text(self.ormFilterStr))\
+            objQuery = objQuery.filter(text(self.ormFilterStr))\
                                    .params(**self.ormFilterValue)
 
-        objQuery = adminQuery\
+        objQuery = objQuery\
             .order_by(desc(self.modelClass.Id))\
             .offset(self.ormSkip)\
             .limit(self.ormLimit)
