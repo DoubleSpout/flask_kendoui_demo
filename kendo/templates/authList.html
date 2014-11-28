@@ -134,6 +134,11 @@
                             }
                         },
                     edit:function(e){
+                        setTimeout(function(){
+                            var dropdownlist =  $('select[name="isMenu"]').data("kendoDropDownList");
+                            var n =e.model.isMenu ? 0 : 1
+                            dropdownlist.select(dropdownlist.ul.children().eq(n));
+                        }, 100)
                             /*$('.k-window-content').addClass('w-800-content');
                             $('.k-edit-form-container').addClass('w-800-content');
 

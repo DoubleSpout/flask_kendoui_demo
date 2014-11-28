@@ -248,7 +248,7 @@
                             $('.k-window-content').addClass('w-800-content');
                             $('.k-edit-form-container').addClass('w-800-content');
 
-                            window.dropdown_init($('#isShow_inp'), window.is_show_array)
+                            window.dropdown_init($('#isShow_inp'), window.is_show_array, e.model.isShow)
 
                             multiUpload($("#upload_file"), $('#appPicture_inp'), 1)
                             $("#intro").kendoEditor(window.kendo_edit_option);

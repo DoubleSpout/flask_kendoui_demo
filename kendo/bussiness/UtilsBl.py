@@ -179,6 +179,11 @@ class kendouiData(object):
         value = filters.get('value', '')
         genStr = None
 
+        if value.lower() == 'true':
+            value = True
+        elif value.lower() == 'false':
+            value = False
+
         #如果是日期字段
         if key.lower().find('time') > 0 or key.lower().find('date') > 0:
             keyIsDate = True
@@ -312,6 +317,8 @@ class kendouiData(object):
         if self.ormFilterStr != '':
             objQuery = objQuery.filter(text(self.ormFilterStr))\
                                    .params(**self.ormFilterValue)
+        #查询总数
+        total = objQuery.count()
 
         objQuery = objQuery\
             .order_by(desc(self.modelClass.Id))\
@@ -321,9 +328,6 @@ class kendouiData(object):
         dataQueryList = objQuery.all()
         #将查询的数据转为dict
         self.sqlData = objIns.sqlData = dataQueryList
-
-        #查询总数
-        total = objQuery.count()
 
         #如果总数为0，则显示空数组
         if total == 0:
@@ -363,6 +367,11 @@ class kendouiData(object):
                     value = True
                 elif value == 'false':
                     value = False
+                elif key.lower().find('time') > 0 or key.lower().find('date') > 0:
+                    ok, tmpValue = self.parseTimeStr(value)
+                    if not ok:
+                        continue
+                    value = tmpValue
 
                 insObj[key] = value
 

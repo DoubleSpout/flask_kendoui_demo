@@ -70,7 +70,7 @@ window.commandAry = [
 
 
 //下拉菜单
-window.dropdown_init = function($obj, $array,onchange,init){
+window.dropdown_init = function($obj, $array, bleanVal, onchange,init){
       var $obj = $obj || $("#isShow_inp")
       var $array = $array || window.is_show_array
       var onchange = onchange || $.noop;
@@ -79,21 +79,30 @@ window.dropdown_init = function($obj, $array,onchange,init){
         $obj.val(init).change()
       }
       var appid = $obj.val()
-             var isFound = 0;
-             $array.forEach(function(v){
-                if(v.value == appid){
-                    isFound++
-                }
-             })
-             if(isFound == 0){
-                $obj.val($array[0].value).change();
-             }
-              $obj.kendoDropDownList({
-                    dataTextField: "text",
-                    dataValueField: "value",
-                    dataSource: $array,
-                    select:onchange
-                })
+     var isFound = 0;
+     $array.forEach(function(v){
+        if(v.value == appid){
+            isFound++
+        }
+     })
+     if(isFound == 0){
+        $obj.val($array[0].value).change();
+     }
+      $obj.kendoDropDownList({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: $array,
+            select:onchange
+        })
+
+       if($array[0].value === true){
+           n =  bleanVal == 'true' ? 0 : 1
+           var dropdownlist  = $obj.data("kendoDropDownList");
+           dropdownlist.select(dropdownlist.ul.children().eq(n));
+
+        }
+
+
 
 }
 
